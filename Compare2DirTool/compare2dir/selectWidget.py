@@ -46,6 +46,9 @@ class SelectWidgetView(QWidget):
         if os.path.isdir(path_dir1) == False or os.path.isdir(path_dir2) == False:
             QMessageBox.information(self, "tips", "选择正确的文件夹路径")
             return
+        if path_dir1 == path_dir2:
+            QMessageBox.information(self, "tips", "选择不同的文件夹来对比")
+            return
 
         from manager.CorotineMgr import CoroutineManager
         CoroutineManager().startCoroutine(compare2DirDifferents(path_dir1,path_dir2))

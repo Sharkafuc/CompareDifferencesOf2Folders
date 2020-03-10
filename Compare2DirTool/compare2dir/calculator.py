@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from data.constData import *
 
 def execCmd(cmd):
     r = os.popen(cmd)
@@ -90,18 +91,11 @@ def compare_different_dirs_of_dirs(pathdirs,path_dir1,path_dir2,only_dir_dirs):
             only_dir_dirs.add(relativePath)
 
 def addFilePathToTree(file,tree):
-    from tree import Tree, TreeNode
-    filestrarr = file.split("\\")
-    filestrarr = [file for file in filestrarr if file.strip() != ""]
-    pathNode = tree.root
-    for pathfile in filestrarr:
-        if pathNode and pathNode.get_child(pathfile) == None:
-            newNode = TreeNode(pathfile)
-            pathNode.add_child(newNode)
-            pathNode = newNode
+    file = file.replace('\\','/')
+    tree.addFilePathToTree(file)
 
 def createFileTree(treename,rootname,only_files,only_dirs):
-    from tree import Tree, TreeNode
+    from common.tree import Tree, TreeNode
     tree = Tree(TreeNode(rootname),treename)
     for only_file in only_files:
         addFilePathToTree(only_file,tree)
@@ -120,16 +114,15 @@ def compare2DirDifferents(path_dir1,path_dir2):
     only_dir2_files = set()
     modified_files = set()
 
-    print("开始比较文件夹差异")
+    print("开始比较目录差异")
     path1dirs, path1files = walkPathDir(path_dir1)
-    print("文件夹1包含:",len(path1dirs),"个子目录，",len(path1files),"个文件")
+    print("目录1包含:",len(path1dirs),"个子目录，",len(path1files),"个文件")
     path2dirs, path2files = walkPathDir(path_dir2)
-    print("文件夹2包含:", len(path2dirs), "个子目录，", len(path2files), "个文件")
+    print("目录2包含:", len(path2dirs), "个子目录，", len(path2files), "个文件")
 
     #耗时比较操作,用协程分片回调进度
     yield compare_different_files_of_dirs(path1files, path_dir1, path_dir2, only_dir1_files, modified_files)
     yield compare_different_files_of_dirs(path2files, path_dir2, path_dir1, only_dir2_files, modified_files)
-
 
     compare_different_dirs_of_dirs(path1dirs,path_dir1,path_dir2,only_dir1_dirs)
     compare_different_dirs_of_dirs(path2dirs,path_dir2,path_dir1,only_dir2_dirs)
@@ -142,9 +135,10 @@ def compare2DirDifferents(path_dir1,path_dir2):
     modified_files = list(modified_files)
     different_dirs_cnt = len(only_dir1_dirs) + len(only_dir2_dirs)
     different_files_cnt = len(only_dir1_files) + len(only_dir2_files) + len(modified_files)
-    only_dir1_tree = createFileTree("文件夹1独有",path_dir1,only_dir1_files,only_dir1_dirs)
-    only_dir2_tree = createFileTree("文件夹2独有",path_dir2,only_dir2_files,only_dir2_dirs)
-    modified_tree = createFileTree("改动文件树","modify_root",modified_files,[])
+
+    only_dir1_tree = createFileTree(dir1_tree_name,path_dir1,only_dir1_files,only_dir1_dirs)
+    only_dir2_tree = createFileTree(dir2_tree_name,path_dir2,only_dir2_files,only_dir2_dirs)
+    modified_tree = createFileTree(modified_tree_name,"modify_root",modified_files,[])
 
     compareResult = {
         "different_dirs_cnt":different_dirs_cnt,
@@ -152,6 +146,8 @@ def compare2DirDifferents(path_dir1,path_dir2):
         "only_dir1_tree":only_dir1_tree,
         "only_dir2_tree":only_dir2_tree,
         "modified_tree":modified_tree,
+        "path_dir1":path_dir1,
+        "path_dir2":path_dir2,
     }
 
     from compareCommand import CompareCommand

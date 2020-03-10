@@ -28,6 +28,8 @@ class MainWidgetView(QMainWindow):
         self.createOrUpdateResultMenu(None)
         self.setCentralWidget(self.selectMenu)
 
+        self.move(100,100)
+
     def createOrUpdateResultMenu(self,compareResult):
         if self.resultMenu and sip.isdeleted(self.resultMenu) == False :
             self.resultMenu.destroy()
